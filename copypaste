@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Search Bar using PHP</title>
+</head>
+<body>
+
+<form method="post">
+<label>Search</label>
+<input type="text" name="search">
+<input type="submit" name="submit">
+	
+</form>
+
+</body>
+</html>
+
+<?php
+
+$con = new PDO("mysql:host=localhost;dbname=CodeFlix",'root','');
+
+if (isset($_POST["submit"])) {
+	$str = $_POST["search"];
+	$sth = $con->prepare("SELECT * FROM `search` WHERE Name = '$str'");
+
+	$sth->setFetchMode(PDO:: FETCH_OBJ);
+	$sth -> execute();
+
+	if($row = $sth->fetch())
+	{
+		?>
+		<br><br><br>
+		<table>
+			<tr>
+				<th>Name</th>
+				<th>Description</th>
+			</tr>
+			<tr>
+				<td><?php echo $row->Name; ?></td>
+				<td><?php echo $row->Description;?></td>
+			</tr>
+
+		</table>
+<?php 
+	}
+		
+		
+		else{
+			echo "Name Does not exist";
+		}
+
+
+}
+
+?>
+<?php
+ 
+include 'conn.php';
+$target_dir = "upload/";
+$target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);//dest
+$uploadOk = 1;
+$f=$_FILES["fileToUpload"];
+$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
+
+// Check if image file is a actual image or fake image
+if(isset($_POST["submit"])) {
+    $username =$_POST['username'];
+    $bookname =$_POST['bookname'];
+    $bookauhor =$_POST['bookauthor'];
+    $subject =$_POST['subject'];
+    $branch =$_POST['branch'];
+    $semester =$_POST['sem'];
+    $c=$_POST['price'];
+//print_r($f);
+    $filename=$f['name'];
+    $filepath=$f['tmp_name'];
+//print_r($filepath);
+    $fileerror=$f['error'];
+    if($f['error'] ==0){}
+  $check = getimagesize($_FILES["fileToUpload"]["tmp_name"]);
+  if($check !== false) {
+    echo "File is an image - " . $check["mime"] . ".";
+    $uploadOk = 1;
+  } else {
+    echo "File is not an image.";
+    $uploadOk = 0;
+  }
+}
+
+// Check if file already exists
+if (file_exists($target_file)) {
+  echo "Sorry, file already exists.";
+  $uploadOk = 0;
+}
+
+// Check file size
+if ($_FILES["fileToUpload"]["size"] > 500000000) {
+  echo "Sorry, your file is too large.";
+  $uploadOk = 0;
+}
+
+// Allow certain file formats
+if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg"
+&& $imageFileType != "gif" ) {
+  echo "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
+  $uploadOk = 0;
+}
+
+// Check if $uploadOk is set to 0 by an error
+if ($uploadOk == 0) {
+  echo "Sorry, your file was not uploaded.";
+// if everything is ok, try to upload file
+} else {
+  if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
+    echo "The file ". htmlspecialchars( basename( $_FILES["fileToUpload"]["name"])). " 
+    has been uploaded.";
+    $insertquery="insert into book_ads(username,bookname,bookauthor,subject,semester,branch,cost,photo)
+    values('$username','$bookname','$bookauhor','$subject','$semester','$branch','$cost',$target_file')";
+    $query = mysqli_query($con,$insertquery);
+     echo "inserted into database";
+  } else {
+    echo "Sorry, there was an error uploading your file. not inserted to database";
+  }
+}
+
+?>
